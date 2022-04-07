@@ -1,0 +1,403 @@
+#:kivy 2.0.0
+
+
+<MenuButton@Button>:
+    size_hint: (None, None)
+    height: 100
+    width: 200
+
+<Background@Image>:
+    source: app.img_path 
+    size: self.texture_size
+
+
+<BackToMenuButton@Button>:
+    text: 'Back to menu'
+    size_hint: (None,None)
+    height: dp(30)
+
+<SaveButton@Button>:
+    text: 'Save system'
+    size_hint: (None,None)
+    height: dp(30)
+
+
+
+<TimeSliderContainer>
+    step: sim_step
+    duration: sim_duration
+    orientation: 'vertical'
+    size_hint: 1, None
+    Label:
+        text: 'Simulation step (hours): '+ str(sim_step.value)
+    Slider:
+        id: sim_step
+        min: 1
+        max: (3 * 365)
+        step: 1
+        on_value: root.handle_step_move(self.value)
+    Label:
+        text: 'Simulation duration (days): '+ str(sim_duration.value//24)
+    Slider:
+        id: sim_duration
+        min: (30 * 24)
+        max: (3 * 365 * 24)
+        step: 1
+        on_value: root.handle_duration_move(self.value)
+
+
+
+<EncodeSystem>:
+    slider_container: slider
+    Background:
+    BoxLayout:
+        orientation : 'vertical'
+        TimeSliderContainer:
+            id: slider
+        Button:
+            text: 'Run simulation'
+            size_hint: (1, None)
+            height: dp(30)
+            on_release:
+                root.run_simulation(app.run_simulation)
+        BoxLayout:
+            orientation : 'horizontal'
+            size_hint: (1, None)
+            height: dp(30)
+
+            # add an inputBody
+            Button:
+                text: 'Add a body (line)'
+                size_hint: (1, None)
+                height: dp(30)
+                on_release:
+                    root.add_input_body(outer_container)
+
+            # remove last inputBody
+            Button:
+                text: 'Delete a body (line)'
+                size_hint: (1, None)
+                height: dp(30)
+                on_release:
+                    root.del_input_body(outer_container)
+        ScrollView:
+            bar_width: 10
+            do_scroll_x: False
+            do_scroll_y: True
+            id: scroll_view
+            InputContainer:
+                id: outer_container
+                cols: 1
+                size_hint_y: None
+                size_hint_x: 1 - (scroll_view.bar_width/scroll_view.width)
+                height: self.minimum_height
+                row_force_default: True
+                row_default_height: dp(40)
+                size: root.size
+                InputBody:
+        BoxLayout:
+            orientation : 'horizontal'
+            size_hint: (.3, None)
+            height: dp(30)
+            id: bot_left_buts_layout
+            BackToMenuButton:
+                on_release:
+                    root.manager.current = 'mainmenu'
+            # Save system
+            Button:
+                text: 'Save system'
+                size_hint: (None,None)
+                height: dp(30)
+                on_release:
+                    root.show_save(outer_container)
+            # Clear all
+            Button:
+                text: 'Clear system'
+                size_hint: (None,None)
+                height: dp(30)
+                on_release: outer_container.reset_inputs()
+
+                    
+            
+<ManagePresets>:
+    Background:
+    BoxLayout:
+        orientation: 'vertical'
+        pos_hint: {'center_x': .5, 'center_y':.5}
+        size_hint: None, None
+        width:150
+        height:len(self.children)*50
+        Button:
+            text: 'Load a preset file'
+            on_release: root.show_load()
+        Button:
+            text: 'Export saved presets'
+            on_release: root.show_export()
+        Button:
+            text: "Delete presets"
+            on_release: root.show_delete()
+    BackToMenuButton:
+        pos: root.pos
+        on_release: root.manager.current = 'mainmenu'
+
+<DeletePresetDialog>:
+    layout: container
+    ScrollView:
+        x: root.x + (root.width - self.width)/2
+        y: root.y + (root.height - self.height)/2
+        id: scrl
+        bar_width: 10
+        do_scroll_x: False
+        do_scroll_y: True
+        size_hint: (0.2, 0.7)
+        BoxLayout:
+            cols: 1
+            size_hint: (1, None)
+            height: self.minimum_height
+            row_force_default: True
+            row_default_height: dp(40)
+            id: container
+            orientation: "vertical"
+    Button:
+        size_hint: None, None
+        pos: root.pos
+        height: 30
+        width: 60
+        text: "Quit"
+        on_release: root.quit()
+
+<DeleteBodyDialog>:
+    layout: container
+    ScrollView:
+        x: root.x + (root.width - self.width)/2
+        y: root.y + (root.height - self.height)/2
+        id: scrl
+        bar_width: 10
+        do_scroll_x: False
+        do_scroll_y: True
+        size_hint: (0.2, 0.7)
+        BoxLayout:
+            cols: 1
+            size_hint: (1, None)
+            height: self.minimum_height
+            row_force_default: True
+            row_default_height: dp(40)
+            id: container
+            orientation: "vertical"
+    Button:
+        size_hint: None, None
+        pos: root.pos
+        height: 30
+        width: 60
+        text: "Quit"
+        on_release: root.quit()
+
+
+<ConfirmDialog>:
+    
+    Label:
+        size_hint: None, None
+        pos_hint: {'center_x': .5, 'center_y':.6}
+        text: f"""You are about to delete preset \"{root.name}\".\n            Are you sure ?"""
+    BoxLayout:
+        pos: root.pos
+        height: 40
+        size_hint: 1, None 
+        Button:
+            text: "Yes."
+            on_release: root.confirm()
+        Button:
+            text: "No."
+            on_release: root.cancel()
+<LoadDialog>:
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserListView:
+            id: filechooser
+            path: root.data_path
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Load"
+                on_release: root.load(filechooser.path, filechooser.selection)
+
+
+<ExportDialog>:
+    text_input: text_input
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserListView:
+            id: filechooser
+            path: root.data_path
+            on_selection: text_input.text = self.selection and self.selection[0] or ''
+
+        NotEmptyInput:
+            id: text_input
+            size_hint_y: None
+            height: 30
+            multiline: False
+            hint_text: "Filename without extension"
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Export"
+                on_release: root.export(filechooser.path, text_input.text)
+<ErrorDialog>:
+    Label:
+        id: msg
+        pos: root.pos
+        text: root.message
+    Button:
+        x: root.x + root.width/2 - self.width/2
+        y: root.y
+        size_hint: (None, None)
+        height: dp(30)
+        text: "Ok."
+        on_release: root.ok()
+<MainMenu>:
+    Background:
+    RelativeLayout:
+        pos: (root.width - 200)/2, (root.height - 2*100)/2
+        BoxLayout:
+            id: menu_button_layout
+            orientation: 'vertical'
+            size_hint: (None, None)
+            MenuButton:
+                text: 'Custom system'
+                on_release:
+                    root.manager.current = 'encodemenu'
+            MenuButton:
+                text: 'Manage presets'
+                on_release:
+                    root.manager.current = 'preset_manager'
+            MenuButton:
+                text: 'Run preset'
+                on_release:
+                    root.manager.current = 'presetmenu'
+
+
+<ChoosePreset>:
+    slider_container: slider
+    simulation_callback: app.run_simulation
+    Background:
+    TimeSliderContainer:
+        id: slider
+        pos: 0, root.height - self.height
+    BoxLayout: 
+        id: but_container
+        pos_hint:{'center_y': 0.5 - (((len(self.children)*100)/(2*root.height))), 'center_x': 0.5 - (100/(2*root.width))}
+        orientation: 'vertical'
+        size_hint: (None, None)
+    BackToMenuButton:
+        on_release:
+            root.manager.current = 'mainmenu'
+
+<InputBody>:
+    orientation:'horizontal'
+    size_hint:(1, None)
+    height: dp(40)
+    number: 0
+    SupportsFloatInput:
+        hint_text:'X Position (m):'
+        multiline:False
+        id: x_pos
+        font_size: dp(15)
+    SupportsFloatInput:
+        hint_text:'Y Position (m):'
+        multiline:False
+        id: y_pos
+        font_size: dp(15)
+    SupportsFloatInput:
+        hint_text:'Z Position (m):'
+        multiline:False
+        id: z_pos
+        font_size: dp(15)
+    SupportsFloatInput:
+        hint_text:'X Velocity (m/s):'
+        multiline:False
+        id: x_vel
+        font_size: dp(15)
+    SupportsFloatInput:
+        hint_text:'Y Velocity (m/s):'
+        multiline:False
+        id: y_vel
+        font_size: dp(15)
+    SupportsFloatInput:
+        hint_text:'Z Velocity (m/s):'
+        multiline:False
+        id: z_vel
+        font_size: dp(15)
+    SupportsFloatInput:
+        hint_text:'Mass (kg):'
+        multiline:False
+        rule: lambda nb: nb > 0
+        id: mass
+    NotEmptyInput:
+        hint_text:'Name:'
+        multiline:False
+        id: name
+        text: 'Body_'+ str(root.number)
+   
+<SaveSystemDialog>:
+    RelativeLayout:
+        RelativeLayout:
+            BoxLayout:
+                x: root.x + (root.width - self.width)/2
+                y: root.y + (root.height - self.height)/2
+                size_hint:(None, None)
+                orientation: 'vertical'
+                width: 120
+                height: 60
+                Label:
+                    text: "System name:"
+                NotEmptyInput:
+                    multiline:False
+                    id: system_name
+        BoxLayout:
+            y: root.y
+            x: root.x
+            size_hint: (None, None)
+            # Validate
+            Button:
+                text: 'Save'
+                size_hint: (None,None)
+                height: dp(30)
+                on_release:
+                    root.save(system_name, root.sys)
+            # Cancel
+            Button:
+                text: 'Cancel'
+                size_hint: (None,None)
+                height: dp(30)
+                on_release:
+                    root.cancel()
+        
+<ProgressDialog>:
+    bar: bar
+    RelativeLayout:
+        pos: root.pos
+        ProgressBar:
+            value:0
+            id: bar
+        Button:
+            size_hint: (None,None)
+            height: dp(30)
+            text: "Cancel"
+            on_release: root.cancel()
+   

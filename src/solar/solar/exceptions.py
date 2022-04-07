@@ -1,0 +1,2 @@
+class BodyError(Exception):
+    pass

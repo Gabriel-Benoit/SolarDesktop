@@ -1,0 +1,17 @@
+[run]
+branch = True
+source = 
+    solar
+    tests
+omit =
+    solar/presets/*
+    solar/logger.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    def __repr__
+    def __str__
+    def show_results
+    
